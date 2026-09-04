@@ -1,109 +1,155 @@
-# Hba1c Eag Converter
+# HbA1c to eAG Converter
 
-> **Domain:** Clinical Decision Support & Biomedical Computing  
-> **Reference Guidelines & Standards:** `Standard Clinical Formulations & ISO/IEC Quality Frameworks`
+> **Domain:** Clinical Decision Support & Biomedical Computing
+> **Standards:** ADAG (A1C-Derived Average Glucose), IFCC
 
 <div align="center">
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 ![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12-3776AB.svg?logo=python&logoColor=white)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.111-009688.svg?logo=fastapi&logoColor=white)
-![Audit Trail](https://img.shields.io/badge/Audit-HMAC--SHA256_Tamper--Evident-brightgreen.svg)
-![Zero-PHI Guard](https://img.shields.io/badge/Guard-Zero--PHI_Outbound-blue.svg)
-![Docker](https://img.shields.io/badge/Docker-Ready-2496ED.svg?logo=docker&logoColor=white)
 
 </div>
 
 ---
 
-## 📖 What It Does
+## What It Does
 
-HbA1c to eAG Converter
-Bidirectional HbA1c (%) <-> eAG (mg/dL, mmol/L) via ADAG with IFCC mmol/mol.
-Stdlib only.
+Bidirectional medical conversion between HbA1c (%), estimated Average Glucose (eAG in mg/dL and mmol/L), and IFCC (mmol/mol). Supports batch CSV processing and clinical score calculations.
 
 ---
 
-## ⚙️ Key Capabilities & Algorithmic Modules
+## Key Features
 
-### 🔬 Analytical Functions
-
-- **`convert_hba1c()`**: ADAG: eAG(mg/dL)=28.7*HbA1c-46.7, IFCC =10.929*(HbA1c-2.15). Bidirectional.
-- **`assess_row()`** — calculates and validates assess_row parameters.
-- **`process_csv()`** — calculates and validates process_csv parameters.
-- **`build_parser()`** — calculates and validates build_parser parameters.
-- **`main()`** — calculates and validates main parameters.
+- **ADAG Formula**: eAG(mg/dL) = 28.7 × HbA1c(%) − 46.7
+- **IFCC Conversion**: IFCC(mmol/mol) = 10.929 × (HbA1c − 2.15)
+- **Bidirectional**: Convert from any one known value to the others
+- **Input Validation**: Physiological bounds checking with clear error messages
+- **Batch Processing**: Process CSV files with multiple patient records
+- **Clinical Scoring**: MELD-Na, QTc, BMI, APRI/FIB-4 calculators
 
 ---
 
-## 📐 Mathematical Formulation & Logic
+## Mathematical Formulas
 
-```text
-  return calculate_score(**row)
+```
+ADAG (mg/dL): eAG = 28.7 * HbA1c(%) - 46.7
+ADAG (mmol/L): eAG_mmol = eAG_mgdl / 18.015
+IFCC: IFCC = 10.929 * (HbA1c(%) - 2.15)
 ```
 
 ---
 
-## 💻 CLI Quickstart & Usage
+## Installation
 
-### 1. Guided Interactive Mode
 ```bash
-python cli.py
+pip install -e .
+# Or with development dependencies:
+pip install -e ".[dev]"
 ```
-
-### 2. Direct Parameterized Evaluation
-```bash
-python cli.py --task-id <value> --target <value> --primary <value> --secondary <value>
-```
-
-### Parameter Reference
-- `--task-id`: Specifies input measurement or parameter value.
-- `--target`: Specifies input measurement or parameter value.
-- `--primary`: Specifies input measurement or parameter value.
-- `--secondary`: Specifies input measurement or parameter value.
-- `--critical`: Specifies input measurement or parameter value.
-- `--status`: Specifies input measurement or parameter value.
-- `--input`: Specifies input measurement or parameter value.
-- `--output`: Specifies input measurement or parameter value.
-
-### Input Data Schema
-
-| Field | Description | Requirement |
-|:------|:------------|:------------|
-| `patient_id` | Parameter / observation metric | Required |
-| `hba1c_percent` | Parameter / observation metric | Required |
 
 ---
 
-## 🛡️ Security & Enterprise Architecture
+## Usage
 
-* **Zero-PHI Outbound Interceptor:** Active AST and regex inspection blocking SSNs, MRNs, phone numbers, and patient identifiers.
-* **Tamper-Evident HMAC-SHA256 Audit Trail:** Chained, cryptographically signed logs for every evaluation and state transition.
-* **Air-Gapped LLM Reasoning Adapter:** Agnostic integration for local Ollama instances (`llama3`, `mistral`), Claude 3.5 Sonnet, GPT-4o, and deterministic test mocks.
-* **Active Learning Bayesian Calibration:** Dynamic tracker updating worker reliability weights and monitoring Brier calibration drift.
-* **FastAPI & Prometheus Telemetry:** Exposes OpenAPI 3.1 REST endpoints and operational Prometheus metrics (`/metrics`).
+### Command Line
+
+```bash
+# Single HbA1c to eAG conversion
+python hba1c_eag.py single --hba1c 7.0
+
+# eAG to HbA1c
+python hba1c_eag.py single --eag 154.2
+
+# IFCC to HbA1c
+python hba1c_eag.py single --ifcc 53.0
+
+# JSON input
+python hba1c_eag.py single --json '{"hba1c_percent": 7.0}'
+
+# Batch CSV processing
+python hba1c_eag.py batch --input sample.csv --output results.csv
+```
+
+### Python API
+
+```python
+import hba1c_eag
+
+# Convert HbA1c to eAG and IFCC
+result = hba1c_eag.convert_hba1c(hba1c_percent=7.0)
+# Returns: {'hba1c_percent': 7.0, 'eag_mgdl': 154.2, 'eag_mmol': 8.6, 'ifcc_mmol_mol': 53.0}
+
+# Convert eAG to HbA1c
+result = hba1c_eag.convert_hba1c(eag_mgdl=154.2)
+
+# Convert IFCC to HbA1c
+result = hba1c_eag.convert_hba1c(ifcc_mmol=53.0)
+```
+
+### Input Schema
+
+| Field | Description | Unit |
+|:------|:------------|:-----|
+| `hba1c_percent` | HbA1c value (DCCT/NGSP) | % |
+| `eag_mgdl` | Estimated Average Glucose | mg/dL |
+| `ifcc_mmol` | IFCC standardised value | mmol/mol |
 
 ---
 
-## 🧪 Testing & Verification
-
-Run the automated test suite:
+## Testing
 
 ```bash
+# Run all tests
 pytest -v
-```
 
-Execute high-throughput batch simulation benchmarks:
+# Run only core conversion tests
+pytest test_hba1c_eag.py -v
 
-```bash
-python simulator.py --tasks 1000 --concurrency 8
+# Run with short tracebacks
+pytest -v --tb=short
 ```
 
 ---
 
-## 🐳 Container Deployment
+## Security
+
+- **Input Validation**: All numeric inputs validated against physiological bounds
+- **No External Network Calls**: Core conversion is stdlib-only
+- **Audit Trail**: HMAC-SHA256 tamper-evident logging in the agents module
+- **Zero-PHI Guard**: Regex-based detection of PHI in outbound data
+
+Set `AUDIT_SECRET_KEY` environment variable for persistent audit integrity in production:
 
 ```bash
-docker build -t hba1c-eag-converter .
-docker run -p 8000:8000 hba1c-eag-converter
+export AUDIT_SECRET_KEY="your-secret-key-here"
 ```
+
+---
+
+## Project Structure
+
+```
+hba1c-eag-converter/
+├── hba1c_eag.py          # Core conversion & CLI
+├── cli.py                # Extended CLI with agents framework
+├── enrichment.py         # Enrichment engine suite
+├── simulator.py          # High-throughput testing simulator
+├── sample.csv            # Sample input data
+├── test_hba1c_eag.py     # Core conversion tests
+├── tests/                # Full test suite
+├── agents/               # Enterprise agent framework
+│   ├── base.py           # Security, PHI guard, audit trail
+│   ├── models.py         # Pydantic schemas
+│   ├── supervisor.py     # Multi-agent orchestrator
+│   ├── workers.py        # Specialized scoring workers
+│   └── ...
+├── web/                  # Operations dashboard
+├── Dockerfile            # Container build
+└── docker-compose.yml    # Container orchestration
+```
+
+---
+
+## License
+
+MIT License. See [LICENSE](LICENSE) for details.
