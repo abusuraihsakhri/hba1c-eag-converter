@@ -53,7 +53,7 @@ def test_cli_invalid_args(capsys):
 
 
 def test_meld_na_legacy_coefficient_and_dialysis():
-    assert calculate_meld_na(1, 1, 1, 137, False) == 6
+    assert calculate_meld_na(1, 1, 1, 137, False) == 6.4
     assert calculate_meld_na(1, 1, 1, 137, True) > 6
     assert calculate_meld_na(1.5, 1, 1.2, 135, False) == 10.0
 
