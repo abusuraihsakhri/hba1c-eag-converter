@@ -34,7 +34,8 @@ dev = [
 ]
 
 [project.scripts]
-hba1c-eag = "cli:main"
+hba1c-eag = "hba1c_eag:main"
+hba1c-eag-audit = "cli:main"
 
 [tool.setuptools]
 packages = ["agents"]
