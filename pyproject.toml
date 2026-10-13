@@ -38,6 +38,7 @@ hba1c-eag = "cli:main"
 
 [tool.setuptools]
 packages = ["agents"]
+py-modules = ["hba1c_eag", "cli", "enrichment", "simulator"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests", "."]
