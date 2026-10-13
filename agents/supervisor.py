@@ -1,6 +1,6 @@
 """
 Supervisor Orchestrator & Operations Intelligence for Hba1C Eag Converter.
-Domain: Clinical & Biomedical AI
+Domain: Prototype audit orchestration
 """
 import uuid
 from typing import Dict, Any, List, Optional
@@ -75,5 +75,5 @@ class SystemSupervisor:
 
     def query_supervisory_chat(self, query: str) -> str:
         PHIGuard.assert_no_phi(query)
-        prompt = f"Supervisor inquiry for Hba1C Eag Converter under CAP / CLSI / ISO Standards: {query}"
+        prompt = f"Supervisor inquiry for Hba1C Eag Converter (prototype only): {query}"
         return self.llm.invoke(prompt)
