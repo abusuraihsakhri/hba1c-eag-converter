@@ -1,13 +1,12 @@
-version: '3.8'
-
 services:
   hba1c-eag-converter:
     build: .
     container_name: hba1c-eag-converter
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
     environment:
       - AUDIT_SECRET_KEY=${AUDIT_SECRET_KEY:-}
+      - AUDIT_LOGS_TOKEN=${AUDIT_LOGS_TOKEN:-}
       - MODEL_PROVIDER=mock
     restart: unless-stopped
     healthcheck:

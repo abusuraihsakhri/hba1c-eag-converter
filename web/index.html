@@ -1,236 +1,107 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hba1C Eag Converter — Operations Console</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg: #090d16;
-            --card: #111827;
-            --border: #1f293d;
-            --accent: #3b82f6;
-            --accent-glow: rgba(59, 130, 246, 0.25);
-            --text: #f3f4f6;
-            --text-muted: #9ca3af;
-            --danger: #ef4444;
-            --warning: #f59e0b;
-            --success: #10b981;
-        }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            font-family: 'Inter', sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            padding: 2rem;
-            min-height: 100vh;
-        }
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid var(--border);
-            padding-bottom: 1.5rem;
-            margin-bottom: 2rem;
-        }
-        .header-title h1 { font-size: 1.6rem; font-weight: 700; color: #fff; }
-        .header-title p { color: var(--text-muted); font-size: 0.9rem; margin-top: 0.25rem; }
-        .badge {
-            display: inline-block;
-            padding: 0.3rem 0.8rem;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            background: var(--accent-glow);
-            color: var(--accent);
-            border: 1px solid var(--accent);
-        }
-        .grid {
-            display: grid;
-            grid-template-columns: 1fr 1.2fr;
-            gap: 1.5rem;
-        }
-        .card {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 1.5rem;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-        }
-        .card h2 {
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        .form-group { margin-bottom: 1rem; }
-        label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.4rem; }
-        input, select, textarea {
-            width: 100%;
-            padding: 0.65rem 0.9rem;
-            background: #0d1322;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            color: #fff;
-            font-family: inherit;
-            font-size: 0.9rem;
-        }
-        input:focus, textarea:focus { outline: none; border-color: var(--accent); }
-        .btn {
-            background: var(--accent);
-            color: #fff;
-            border: none;
-            padding: 0.7rem 1.4rem;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: 0.2s;
-            width: 100%;
-        }
-        .btn:hover { background: #2563eb; }
-        .terminal {
-            background: #060911;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 1rem;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.85rem;
-            color: #10b981;
-            height: 380px;
-            overflow-y: auto;
-            white-space: pre-wrap;
-        }
-        .metrics-bar {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-        }
-        .metric-box {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 1rem;
-            text-align: center;
-        }
-        .metric-val { font-size: 1.4rem; font-weight: 700; color: #fff; margin-top: 0.25rem; }
-        .metric-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; }
-    </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="description" content="Convert HbA1c, IFCC, and estimated average glucose using the ADAG equation. Works locally in the browser.">
+  <title>HbA1c ↔ eAG Converter</title>
+  <style>
+    :root { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #162338; background: #f3f6fb; line-height: 1.5; }
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    .wrap { max-width: 980px; margin: 0 auto; padding: 40px 20px 60px; }
+    header { margin-bottom: 28px; }
+    .eyebrow { margin: 0 0 5px; color: #245dac; text-transform: uppercase; font-size: 12px; letter-spacing: .1em; font-weight: 750; }
+    h1 { font-size: clamp(1.9rem, 4vw, 2.7rem); line-height: 1.15; letter-spacing: -.04em; margin: 0 0 12px; }
+    h2 { margin: 0 0 16px; font-size: 1.2rem; }
+    p { margin: 8px 0; }
+    .lede { max-width: 700px; color: #45546a; }
+    .layout { display: grid; grid-template-columns: minmax(0, 0.86fr) minmax(0, 1.14fr); gap: 20px; }
+    .card { background: white; padding: 26px; border: 1px solid #dfe6f1; border-radius: 18px; box-shadow: 0 9px 24px rgba(13,39,77,.035); }
+    label { display: block; margin: 0 0 6px; font-weight: 650; font-size: .91rem; }
+    input, select { width: 100%; padding: 12px 13px; color: #162338; background: white; border: 1px solid #acbdd2; border-radius: 9px; font: inherit; }
+    input:focus-visible, select:focus-visible, button:focus-visible, a:focus-visible { outline: 3px solid #8ac0ff; outline-offset: 2px; }
+    input[aria-invalid="true"] { border-color: #a72736; }
+    .field { margin-bottom: 20px; }
+    .hint { font-size: .8rem; color: #65748a; margin-top: 5px; }
+    .error { color: #a72736; font-weight: 650; min-height: 1.5em; margin: -8px 0 8px; font-size: .85rem; }
+    button { font: inherit; cursor: pointer; border-radius: 9px; border: 1px solid #bdcce0; background: #fff; padding: 10px 14px; color: #20476f; font-weight: 650; }
+    button.primary { border-color: #1d5ead; color: #fff; background: #1d5ead; width: 100%; }
+    button:disabled { cursor: not-allowed; opacity: .45; }
+    button:not(:disabled):hover { filter: brightness(.94); }
+    .results { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 0 0 18px; }
+    .result { padding: 17px; border-radius: 12px; background: #f3f7fd; border: 1px solid #dfe8f7; min-width: 0; }
+    .result dt { color: #52627a; font-size: .84rem; }
+    .result dd { margin: 6px 0 0; color: #163b68; font-weight: 750; font-size: 1.8rem; letter-spacing: -.03em; overflow-wrap: anywhere; }
+    .result small { color: #52627a; font-size: .75rem; }
+    .actions { display: flex; gap: 9px; flex-wrap: wrap; }
+    .note { margin-top: 21px; background: #e9f1fb; padding: 15px 17px; border-left: 3px solid #4279bb; border-radius: 7px; color: #354b68; font-size: .87rem; }
+    .method { margin-top: 20px; }
+    .method p { font-size: .88rem; color: #475970; }
+    code { display: block; padding: 10px 12px; margin: 9px 0; background: #f3f7fd; border-radius: 7px; white-space: normal; font-size: .88rem; }
+    a { color: #185aa4; }
+    footer { color: #607087; font-size: .8rem; margin-top: 22px; }
+    @media (max-width: 740px) { .wrap { padding: 25px 14px 38px; } .layout { grid-template-columns: 1fr; } .card { padding: 20px; } }
+    @media (max-width: 420px) { .results { gap: 8px; } .result { padding: 12px; } .result dd { font-size: 1.45rem; } }
+  </style>
 </head>
 <body>
-
-    <div class="header">
-        <div class="header-title">
-            <h1>Hba1C Eag Converter</h1>
-            <p>Domain: Clinical & Cryptographic AI | Standard: CAP / CLSI / NIST Standards | LabMind-Atlas Architecture</p>
+  <main class="wrap">
+    <header>
+      <p class="eyebrow">Clinical laboratory utility · ADAG / IFCC</p>
+      <h1>HbA1c ↔ Estimated Average Glucose</h1>
+      <p class="lede">Convert HbA1c (NGSP/DCCT %), IFCC mmol/mol, and estimated average glucose (eAG) in mg/dL or mmol/L. Calculations happen entirely in your browser.</p>
+    </header>
+    <div class="layout">
+      <section class="card" aria-labelledby="entry-title">
+        <h2 id="entry-title">Enter a measurement</h2>
+        <form id="converter-form">
+          <div class="field">
+            <label for="source">Measurement and unit</label>
+            <select id="source" name="source">
+              <option value="hba1c_percent">HbA1c — NGSP (%)</option>
+              <option value="ifcc_mmol">HbA1c — IFCC (mmol/mol)</option>
+              <option value="eag_mgdl">eAG — mg/dL</option>
+              <option value="eag_mmol">eAG — mmol/L</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="value">Numeric value</label>
+            <input id="value" name="value" type="number" inputmode="decimal" step="any" min="2" max="25" value="7" required aria-describedby="value-hint error">
+            <p class="hint" id="value-hint">Select a different unit to change the input range.</p>
+          </div>
+          <p class="error" id="error" role="alert"></p>
+          <button class="primary" type="submit">Calculate conversion</button>
+        </form>
+        <div class="note">eAG is an estimate derived from HbA1c, not a direct glucose measurement. Discordance may occur with altered erythrocyte turnover, hemoglobin variants, or other assay/interference conditions. Not for independent diagnosis or treatment decisions.</div>
+      </section>
+      <section class="card" aria-labelledby="results-title">
+        <h2 id="results-title">Converted values</h2>
+        <div id="results" aria-live="polite" aria-atomic="true">
+          <dl class="results">
+            <div class="result"><dt>HbA1c · NGSP</dt><dd id="out-hba1c_percent">7</dd><small>%</small></div>
+            <div class="result"><dt>HbA1c · IFCC</dt><dd id="out-ifcc_mmol_mol">53</dd><small>mmol/mol</small></div>
+            <div class="result"><dt>Estimated average glucose</dt><dd id="out-eag_mgdl">154.2</dd><small>mg/dL</small></div>
+            <div class="result"><dt>Estimated average glucose</dt><dd id="out-eag_mmol">8.6</dd><small>mmol/L</small></div>
+          </dl>
         </div>
-        <div>
-            <span class="badge">Air-Gapped Active</span>
-            <span class="badge" style="background: rgba(16,185,129,0.2); color: #10b981; border-color: #10b981;">Zero-PHI Guard Active</span>
+        <div class="actions">
+          <button type="button" id="copy">Copy results</button>
+          <button type="button" id="download">Download CSV</button>
         </div>
+        <div class="method">
+          <h2>Calculation method</h2>
+          <code>eAG (mg/dL) = 28.7 × HbA1c (%) − 46.7</code>
+          <code>IFCC (mmol/mol) = 10.929 × (HbA1c (%) − 2.15)</code>
+          <p>Inverse conversions algebraically rearrange these equations; mg/dL is converted to mmol/L using a factor of 18.015.</p>
+          <p>References: <a href="https://professional.diabetes.org/es/node/171" target="_blank" rel="noopener noreferrer">American Diabetes Association (ADAG)</a> and <a href="https://ngsp.org/ifcc.asp" target="_blank" rel="noopener noreferrer">NGSP / IFCC standardization</a>.</p>
+        </div>
+      </section>
     </div>
-
-    <div class="metrics-bar">
-        <div class="metric-box">
-            <div class="metric-label">System Status</div>
-            <div class="metric-val" style="color: var(--success);" id="m-status">OPTIMAL</div>
-        </div>
-        <div class="metric-box">
-            <div class="metric-label">Tasks Processed</div>
-            <div class="metric-val" id="m-tasks">142</div>
-        </div>
-        <div class="metric-box">
-            <div class="metric-label">Audit Blocks Signed</div>
-            <div class="metric-val" id="m-audit">142</div>
-        </div>
-        <div class="metric-box">
-            <div class="metric-label">PHI Interceptions</div>
-            <div class="metric-val" style="color: var(--accent);" id="m-phi">0</div>
-        </div>
-    </div>
-
-    <div class="grid">
-        <div class="card">
-            <h2>⚙️ Dispatch Distributed Component Audit</h2>
-            <div class="form-group">
-                <label>Task / Sample ID</label>
-                <input type="text" id="task_id" value="TASK-2026-LIVE-01">
-            </div>
-            <div class="form-group">
-                <label>Target Identifier</label>
-                <input type="text" id="target_id" value="SPECIMEN-ALPHA-77">
-            </div>
-            <div class="form-group">
-                <label>Primary Measurement / Value</label>
-                <input type="number" id="primary_metric" value="29.4" step="0.1">
-            </div>
-            <div class="form-group">
-                <label>Secondary Metric / Kinetic Index</label>
-                <input type="number" id="secondary_metric" value="14.8" step="0.1">
-            </div>
-            <div class="form-group">
-                <label>Status / Phenotype Descriptor</label>
-                <input type="text" id="status_descriptor" value="DISCORDANT_ANOMALY">
-            </div>
-            <div class="form-group">
-                <label><input type="checkbox" id="is_critical" checked> Trigger Emergency / Critical Flag</label>
-            </div>
-            <button class="btn" onclick="runAudit()">Execute Distributed Component Audit</button>
-        </div>
-
-        <div class="card">
-            <h2>📊 Real-Time Consensus Dossier & Audit Log</h2>
-            <div class="terminal" id="outputConsole">// Hba1C Eag Converter Operations Console Ready
-// Connection established with Air-Gapped Supervisor
-// Cryptographic HMAC-SHA256 audit ledger loaded.
-// Ready for live task payload dispatch...</div>
-        </div>
-    </div>
-
-    <script>
-        async function runAudit() {
-            const consoleEl = document.getElementById('outputConsole');
-            consoleEl.innerText = "// Dispatching task across specialized workers...
-// Invoking InvariantQCWorker, SafetyEscalationWorker, ProtocolWorker...";
-
-            const payload = {
-                task_id: document.getElementById('task_id').value,
-                target_identifier: document.getElementById('target_id').value,
-                primary_metric: parseFloat(document.getElementById('primary_metric').value),
-                secondary_metric: parseFloat(document.getElementById('secondary_metric').value),
-                status_descriptor: document.getElementById('status_descriptor').value,
-                is_critical_flag: document.getElementById('is_critical').checked
-            };
-
-            try {
-                const res = await fetch('/api/audit', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                const data = await res.json();
-                consoleEl.innerText = JSON.stringify(data, null, 2);
-                document.getElementById('m-tasks').innerText = parseInt(document.getElementById('m-tasks').innerText) + 1;
-                document.getElementById('m-audit').innerText = parseInt(document.getElementById('m-audit').innerText) + 1;
-            } catch (err) {
-                consoleEl.innerText = "// Offline / Simulation Output:\n" + JSON.stringify({
-                    dossier_id: "DOSSIER-SIM-" + Math.floor(Math.random()*10000),
-                    system: "hba1c-eag-converter",
-                    domain: "Clinical & Cryptographic AI",
-                    task_id: payload.task_id,
-                    overall_urgency: payload.is_critical_flag ? "CRITICAL_STAT_PANIC" : "ELEVATED_RISK",
-                    integrity_status: "DISCORDANT_ANOMALY",
-                    alerts: [
-                        { worker: "InvariantQCWorker", alert: "Primary metric exceeds upper reference bound" },
-                        { worker: "SafetyEscalationWorker", alert: "Critical emergency interlock flag active" }
-                    ],
-                    audit_hash: "HMAC_SHA256_e83f9a72b941d6c381f9"
-                }, null, 2);
-            }
-        }
-    </script>
+    <footer>No accounts, cookies, analytics, or server requests are used for conversions. Avoid entering patient identifiers.</footer>
+  </main>
+  <script src="./converter.js"></script>
+  <script src="./app.js"></script>
 </body>
 </html>

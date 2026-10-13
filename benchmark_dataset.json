@@ -1,7 +1,7 @@
 {
   "suite_name": "Hba1C Eag Converter Golden Benchmark Test Suite",
   "system_slug": "hba1c-eag-converter",
-  "standard_reference": "CAP / CLSI / NIST Standards",
+  "standard_reference": "Prototype rules (not clinically validated)",
   "test_cases": [
     {
       "case_id": "BENCH-01-NOMINAL",

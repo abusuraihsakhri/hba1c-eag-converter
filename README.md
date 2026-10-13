@@ -1,155 +1,86 @@
-# HbA1c to eAG Converter
+# HbA1c ↔ eAG Converter
 
-> **Domain:** Clinical Decision Support & Biomedical Computing
-> **Standards:** ADAG (A1C-Derived Average Glucose), IFCC
+Convert HbA1c (NGSP/DCCT %), IFCC HbA1c (mmol/mol), and estimated average glucose (eAG in mg/dL or mmol/L). The browser calculator runs locally without a server or external JavaScript dependencies. A Python conversion API, command line tool, and legacy prototype audit endpoints are also available.
 
-<div align="center">
+## Browser calculator
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12-3776AB.svg?logo=python&logoColor=white)
-
-</div>
-
----
-
-## What It Does
-
-Bidirectional medical conversion between HbA1c (%), estimated Average Glucose (eAG in mg/dL and mmol/L), and IFCC (mmol/mol). Supports batch CSV processing and clinical score calculations.
-
----
-
-## Key Features
-
-- **ADAG Formula**: eAG(mg/dL) = 28.7 × HbA1c(%) − 46.7
-- **IFCC Conversion**: IFCC(mmol/mol) = 10.929 × (HbA1c − 2.15)
-- **Bidirectional**: Convert from any one known value to the others
-- **Input Validation**: Physiological bounds checking with clear error messages
-- **Batch Processing**: Process CSV files with multiple patient records
-- **Clinical Scoring**: MELD-Na, QTc, BMI, APRI/FIB-4 calculators
-
----
-
-## Mathematical Formulas
-
-```
-ADAG (mg/dL): eAG = 28.7 * HbA1c(%) - 46.7
-ADAG (mmol/L): eAG_mmol = eAG_mgdl / 18.015
-IFCC: IFCC = 10.929 * (HbA1c(%) - 2.15)
-```
-
----
-
-## Installation
+Open [web/index.html](web/index.html) in a modern browser, or run a local static server:
 
 ```bash
-pip install -e .
-# Or with development dependencies:
-pip install -e ".[dev]"
+python -m http.server 8080 --directory web
 ```
 
----
+Open `http://localhost:8080/`. Select a measurement, enter a value, and view all four converted values. Copy results or export a single conversion as CSV. Browser calculations use no network requests, cookies, analytics, or storage; external reference links open only when selected. Do not enter patient identifiers.
 
-## Usage
+The browser implementation uses JavaScript directly because the conversion equations do not require a Python interpreter or Pyodide.
 
-### Command Line
+## Equations
+
+- **ADAG:** `eAG (mg/dL) = 28.7 × HbA1c (%) − 46.7`
+- **Glucose units:** `eAG (mmol/L) = eAG (mg/dL) / 18.015`
+- **IFCC/NGSP:** `IFCC (mmol/mol) ≈ 10.929 × (HbA1c (%) − 2.15)`
+
+Inverse conversions rearrange the same equations. Values are rounded for display. Inputs are validated against the tool's configured computational ranges, **not** clinical reference intervals or diagnostic thresholds.
+
+At HbA1c 7.0%, the converter reports eAG **154.2 mg/dL**, **8.6 mmol/L**, and IFCC HbA1c **53.0 mmol/mol**.
+
+Sources: [American Diabetes Association ADAG calculator](https://professional.diabetes.org/es/node/171) and [NGSP IFCC standardization](https://ngsp.org/ifcc.asp).
+
+**Clinical limitation:** eAG is a population-regression estimate, not a directly measured mean glucose, and may differ substantially from an individual's glucose measurements. HbA1c can also be unreliable with altered erythrocyte survival or some assay interferences. This tool does not diagnose or recommend treatment.
+
+## Python CLI and batch processing
+
+Python 3.10 or newer is required.
 
 ```bash
-# Single HbA1c to eAG conversion
-python hba1c_eag.py single --hba1c 7.0
-
-# eAG to HbA1c
-python hba1c_eag.py single --eag 154.2
-
-# IFCC to HbA1c
-python hba1c_eag.py single --ifcc 53.0
-
-# JSON input
-python hba1c_eag.py single --json '{"hba1c_percent": 7.0}'
-
-# Batch CSV processing
-python hba1c_eag.py batch --input sample.csv --output results.csv
+python -m pip install -e .
+hba1c-eag single --hba1c 7
+hba1c-eag single --ifcc 53
+hba1c-eag single --eag 154.2
+hba1c-eag single --eag-mmol 8.6
+hba1c-eag batch --input sample.csv --output results.csv
 ```
 
-### Python API
+A direct `python hba1c_eag.py ...` invocation also works. The Python API is:
 
 ```python
-import hba1c_eag
-
-# Convert HbA1c to eAG and IFCC
-result = hba1c_eag.convert_hba1c(hba1c_percent=7.0)
-# Returns: {'hba1c_percent': 7.0, 'eag_mgdl': 154.2, 'eag_mmol': 8.6, 'ifcc_mmol_mol': 53.0}
-
-# Convert eAG to HbA1c
-result = hba1c_eag.convert_hba1c(eag_mgdl=154.2)
-
-# Convert IFCC to HbA1c
-result = hba1c_eag.convert_hba1c(ifcc_mmol=53.0)
+from hba1c_eag import convert_hba1c
+result = convert_hba1c(hba1c_percent=7)
 ```
 
-### Input Schema
+For batch input, provide a CSV header with one populated measurement per row: `hba1c_percent`, `eag_mgdl`, `eag_mmol`, or `ifcc_mmol`. Empty cells are ignored. Input columns are retained and conversion fields or error messages are added.
 
-| Field | Description | Unit |
-|:------|:------------|:-----|
-| `hba1c_percent` | HbA1c value (DCCT/NGSP) | % |
-| `eag_mgdl` | Estimated Average Glucose | mg/dL |
-| `ifcc_mmol` | IFCC standardised value | mmol/mol |
+The module also contains historical ancillary calculators, including MELD-Na (2016), QTc, BMI (not a BMI z-score), and APRI/FIB-4. They are separate from the HbA1c converter, are not clinical decision support, and should be independently validated before use.
 
----
+## Local API and audit prototype
 
-## Testing
+The optional FastAPI application serves the calculator from a source checkout and exposes stateless `POST /api/convert`:
 
 ```bash
-# Run all tests
-pytest -v
-
-# Run only core conversion tests
-pytest test_hba1c_eag.py -v
-
-# Run with short tracebacks
-pytest -v --tb=short
+python -m pip install -e .
+hba1c-eag-audit serve --host 127.0.0.1 --port 8000
+curl -s -X POST http://127.0.0.1:8000/api/convert \
+  -H 'Content-Type: application/json' \
+  -d '{"hba1c_percent":7}'
 ```
 
----
+The OpenAPI schema is at `/openapi.json`; interactive API documentation is at `/docs`. The legacy audit, chat, and simulation code is a **prototype** with generic threshold rules and deterministic mock responses, not validated clinical safety infrastructure.
 
-## Security
+The audit trail is kept **in memory**, uses HMAC-SHA256, and is lost on restart. Set `AUDIT_SECRET_KEY` in the environment if stable signing keys are needed across process runs. Retrieving `GET /api/audit/logs` additionally requires `AUDIT_LOGS_TOKEN` and the `Authorization: Bearer <token>` header; without a configured token, log retrieval is disabled. The regex identifier filter cannot guarantee de-identification. **Do not submit real protected health information to the audit API.**
 
-- **Input Validation**: All numeric inputs validated against physiological bounds
-- **No External Network Calls**: Core conversion is stdlib-only
-- **Audit Trail**: HMAC-SHA256 tamper-evident logging in the agents module
-- **Zero-PHI Guard**: Regex-based detection of PHI in outbound data
+Docker and Compose configurations provide an optional local API deployment; they do not enable a backend on GitHub Pages.
 
-Set `AUDIT_SECRET_KEY` environment variable for persistent audit integrity in production:
+## Development and tests
 
 ```bash
-export AUDIT_SECRET_KEY="your-secret-key-here"
+python -m pip install -e ".[dev]"
+python -m pytest -q
+python -m compileall -q agents cli.py hba1c_eag.py
+node --test tests/test_browser_converter.cjs
 ```
 
----
-
-## Project Structure
-
-```
-hba1c-eag-converter/
-├── hba1c_eag.py          # Core conversion & CLI
-├── cli.py                # Extended CLI with agents framework
-├── enrichment.py         # Enrichment engine suite
-├── simulator.py          # High-throughput testing simulator
-├── sample.csv            # Sample input data
-├── test_hba1c_eag.py     # Core conversion tests
-├── tests/                # Full test suite
-├── agents/               # Enterprise agent framework
-│   ├── base.py           # Security, PHI guard, audit trail
-│   ├── models.py         # Pydantic schemas
-│   ├── supervisor.py     # Multi-agent orchestrator
-│   ├── workers.py        # Specialized scoring workers
-│   └── ...
-├── web/                  # Operations dashboard
-├── Dockerfile            # Container build
-└── docker-compose.yml    # Container orchestration
-```
-
----
+The browser site targets current Chrome, Firefox, Safari, and Edge versions. Python tests run on versions 3.10–3.13 in GitHub Actions, alongside browser-logic tests and a dependency vulnerability scan.
 
 ## License
 
-MIT License. See [LICENSE](LICENSE) for details.
+[MIT](LICENSE).

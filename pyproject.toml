@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "hba1c-eag-converter"
-version = "3.0.0"
+version = "3.1.0"
 description = "Bidirectional HbA1c (%) <-> eAG (mg/dL, mmol/L) converter via ADAG formula with IFCC mmol/mol support."
 readme = "README.md"
 license = {text = "MIT"}
@@ -31,13 +31,16 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "pytest>=8.0",
+    "httpx>=0.27",
 ]
 
 [project.scripts]
-hba1c-eag = "cli:main"
+hba1c-eag = "hba1c_eag:main"
+hba1c-eag-audit = "cli:main"
 
 [tool.setuptools]
 packages = ["agents"]
+py-modules = ["hba1c_eag", "cli", "enrichment", "simulator"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests", "."]

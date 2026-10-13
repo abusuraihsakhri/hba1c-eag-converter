@@ -1,9 +1,9 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "Hba1C Eag Converter API",
-    "description": "Enterprise Distributed Component Platform (Clinical & Cryptographic AI) adhering to CAP / CLSI / NIST Standards.",
-    "version": "3.0.0-ENTERPRISE",
+    "title": "HbA1c to eAG Converter API",
+    "description": "Stateless HbA1c/eAG conversion and optional prototype audit operations.",
+    "version": "3.1.0",
     "contact": {
       "name": "Dr. Abu Suraih Sakhri",
       "url": "https://github.com/abusuraihsakhri"
@@ -22,7 +22,7 @@
     },
     "/metrics": {
       "get": {
-        "summary": "Prometheus operational metrics",
+        "summary": "In-memory processed dossier and audit counts",
         "responses": {
           "200": {
             "description": "Prometheus text metrics"
@@ -76,7 +76,7 @@
     },
     "/api/chat": {
       "post": {
-        "summary": "Air-gapped supervisory conversational assistant",
+        "summary": "Deterministic mock supervisor response (not medical advice)",
         "requestBody": {
           "content": {
             "application/json": {
@@ -103,10 +103,55 @@
     },
     "/api/audit/logs": {
       "get": {
-        "summary": "Retrieve and cryptographically verify HMAC audit trail",
+        "summary": "Retrieve HMAC audit trail (requires configured bearer token)",
         "responses": {
           "200": {
             "description": "Cryptographic audit trail"
+          },
+          "403": {
+            "description": "Audit logs are protected or token is not configured"
+          }
+        }
+      }
+    },
+    "/api/convert": {
+      "post": {
+        "summary": "Stateless HbA1c/eAG/IFCC conversion",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "hba1c_percent": {
+                    "type": "number",
+                    "description": "HbA1c NGSP %"
+                  },
+                  "eag_mgdl": {
+                    "type": "number",
+                    "description": "Estimated average glucose mg/dL"
+                  },
+                  "eag_mmol": {
+                    "type": "number",
+                    "description": "Estimated average glucose mmol/L"
+                  },
+                  "ifcc_mmol": {
+                    "type": "number",
+                    "description": "HbA1c IFCC mmol/mol"
+                  }
+                },
+                "description": "Supply exactly one value."
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "All four converted values"
+          },
+          "422": {
+            "description": "Invalid measurement, range, or source count"
           }
         }
       }
