@@ -3,7 +3,9 @@ FastAPI REST API Server for Hba1C Eag Converter.
 """
 from typing import Dict, Any, List, Optional
 from pathlib import Path
-from fastapi import FastAPI, HTTPException
+import os
+import hmac
+from fastapi import FastAPI, HTTPException, Header
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from .base import AuditLogger, PHIGuard
@@ -54,7 +56,12 @@ def api_chat(req: ChatRequest):
 
 
 @app.get("/api/audit/logs")
-def api_audit_logs():
+def api_audit_logs(authorization: Optional[str] = Header(default=None)):
+    # Identifiers in the audit trail must not be exposed anonymously.
+    token = os.getenv("AUDIT_LOGS_TOKEN")
+    expected = "Bearer " + token if token else ""
+    if not token or not authorization or not hmac.compare_digest(authorization, expected):
+        raise HTTPException(status_code=403, detail="Audit logs require authorization")
     return {"audit_trail": AuditLogger.get_trail(), "verified": AuditLogger.verify_integrity()}
 
 
