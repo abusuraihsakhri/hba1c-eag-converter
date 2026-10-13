@@ -3,7 +3,7 @@
   "info": {
     "title": "HbA1c to eAG Converter API",
     "description": "Stateless HbA1c/eAG conversion and optional prototype audit operations.",
-    "version": "3.0.0",
+    "version": "3.1.0",
     "contact": {
       "name": "Dr. Abu Suraih Sakhri",
       "url": "https://github.com/abusuraihsakhri"
