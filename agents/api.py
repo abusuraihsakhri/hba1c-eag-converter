@@ -18,7 +18,7 @@ supervisor = SystemSupervisor(model_provider="mock")
 app = FastAPI(
     title="HbA1c to eAG Converter API",
     description="HbA1c conversion and optional prototype audit endpoints",
-    version="3.0.0-ENTERPRISE",
+    version="3.0.0",
 )
 
 
@@ -28,7 +28,7 @@ class ChatRequest(BaseModel):
 
 @app.get("/health")
 def health():
-    return {"status": "HEALTHY", "service": "hba1c-eag-converter", "domain": "Clinical & Biomedical AI", "standard": "CAP / CLSI / ISO Standards", "version": "3.0.0-ENTERPRISE"}
+    return {"status": "healthy", "service": "hba1c-eag-converter", "version": "3.0.0"}
 
 
 @app.get("/metrics")
@@ -36,7 +36,7 @@ def metrics():
     return {
         "dossiers_processed_total": len(supervisor.dossier_registry),
         "audit_blocks_total": len(AuditLogger.get_trail()),
-        "system_status": "NOMINAL_OPTIMAL"
+        "system_status": "running"
     }
 
 
