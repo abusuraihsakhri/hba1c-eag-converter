@@ -30,8 +30,8 @@ class ConversionError(ValueError):
 
 def _validate_numeric(value: Any, name: str) -> float:
     """Validate and convert a numeric input."""
-    if value is None:
-        raise ConversionError(f"{name} cannot be None")
+    if value is None or isinstance(value, bool):
+        raise ConversionError(f"{name} must be a finite number")
     try:
         result = float(value)
     except (TypeError, ValueError) as e:
@@ -147,10 +147,10 @@ def calculate_meld_na(bilirubin: Any, creatinine: Any, inr: Any, sodium: Any,
                       dialysis: bool, albumin: Any = None, sex: str = "M") -> float:
     """Calculate MELD-Na score for liver disease severity."""
     try:
-        bili = max(1.0, float(bilirubin))
-        creat = min(max(1.0, float(creatinine)), 4.0)
-        inr_val = max(1.0, float(inr))
-        na = min(max(125.0, float(sodium)), 137.0)
+        bili = max(1.0, _validate_numeric(bilirubin, "bilirubin"))
+        creat = min(max(1.0, _validate_numeric(creatinine, "creatinine")), 4.0)
+        inr_val = max(1.0, _validate_numeric(inr, "inr"))
+        na = min(max(125.0, _validate_numeric(sodium, "sodium")), 137.0)
     except (TypeError, ValueError) as e:
         raise ConversionError(f"Invalid MELD-Na input: {e}")
 
@@ -174,18 +174,18 @@ def calculate_meld_na(bilirubin: Any, creatinine: Any, inr: Any, sodium: Any,
 def calculate_qtc(qt_ms: Any, rr_ms: Any = None, hr_bpm: Any = None) -> float:
     """Calculate QTc from QT and RR interval or heart rate."""
     try:
-        qt = float(qt_ms)
+        qt = _validate_numeric(qt_ms, "qt_ms")
     except (TypeError, ValueError) as e:
         raise ConversionError(f"Invalid QT input: {e}")
 
     if rr_ms is not None:
         try:
-            rr = float(rr_ms) / 1000.0
+            rr = _validate_numeric(rr_ms, "rr_ms") / 1000.0
         except (TypeError, ValueError) as e:
             raise ConversionError(f"Invalid RR input: {e}")
     elif hr_bpm is not None:
         try:
-            hr = float(hr_bpm)
+            hr = _validate_numeric(hr_bpm, "hr_bpm")
             if hr <= 0:
                 raise ConversionError("Heart rate must be positive")
             rr = 60.0 / hr
@@ -194,8 +194,8 @@ def calculate_qtc(qt_ms: Any, rr_ms: Any = None, hr_bpm: Any = None) -> float:
     else:
         raise ConversionError("Either rr_ms or hr_bpm must be provided")
 
-    if rr <= 0:
-        raise ConversionError("RR interval must be positive")
+    if rr <= 0 or qt <= 0:
+        raise ConversionError("QT and RR intervals must be positive")
     qtc = qt / 1000.0 / math.sqrt(rr)
     return round(qtc, 3)
 
@@ -203,16 +203,16 @@ def calculate_qtc(qt_ms: Any, rr_ms: Any = None, hr_bpm: Any = None) -> float:
 def calculate_bmi_z(weight_kg: Any, height_cm: Any, age_months: Any, sex: str = "M") -> float:
     """Calculate BMI from weight and height."""
     try:
-        wt = float(weight_kg)
-        ht = float(height_cm) / 100.0
-        float(age_months)
+        wt = _validate_numeric(weight_kg, "weight_kg")
+        ht = _validate_numeric(height_cm, "height_cm") / 100.0
+        age = _validate_numeric(age_months, "age_months")
     except (TypeError, ValueError) as e:
         raise ConversionError(f"Invalid BMI input: {e}")
 
     if ht <= 0:
         raise ConversionError("Height must be positive")
-    if wt <= 0:
-        raise ConversionError("Weight must be positive")
+    if wt <= 0 or age < 0:
+        raise ConversionError("Weight must be positive and age nonnegative")
 
     bmi = wt / (ht * ht)
     return round(bmi, 2)
